@@ -57,7 +57,7 @@ public class Linweiyun
                     scheduler.schedule(() -> {
                         Minecraft.getInstance().reloadResourcePacks();
                         requireReloadResourcePack = false;
-                    }, 5, TimeUnit.SECONDS);
+                    }, 7, TimeUnit.SECONDS);
 
                 }
             }
