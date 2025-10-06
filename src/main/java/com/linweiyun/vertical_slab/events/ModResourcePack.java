@@ -3,6 +3,7 @@ package com.linweiyun.vertical_slab.events;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.linweiyun.vertical_slab.LVSGameConfig;
 import com.linweiyun.vertical_slab.Linweiyun;
 import com.linweiyun.vertical_slab.SlabBlockstate;
 import net.minecraft.client.Minecraft;
@@ -21,28 +22,36 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SlabBlock;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
-@EventBusSubscriber(modid = "vertical_slab", bus = EventBusSubscriber.Bus.MOD)
+import static com.linweiyun.vertical_slab.Linweiyun.RESOURCE_PACK_NAME;
+
+@OnlyIn(Dist.CLIENT)
+@EventBusSubscriber(modid = "vertical_slab", bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ModResourcePack {
 
-    private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
-    private static Path resourcePackPath = FMLPaths.GAMEDIR.get().resolve("linweiyun").resolve("ModResourcePack");
 
-    public static Boolean requireReloadResourcePack = false;
-    public static Path lastResourceBlockPath = FMLPaths.GAMEDIR.get().resolve("linweiyun").resolve("ModResourcePack");
+    private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+    private static final Path resourcePackPath = FMLPaths.GAMEDIR.get().resolve("resourcepacks").resolve(RESOURCE_PACK_NAME);
+
+//    public static Boolean requireReloadResourcePack = false;
+//    public static Path lastResourceBlockPath = FMLPaths.GAMEDIR.get().resolve("linweiyun").resolve(RESOURCE_PACK_NAME);
     @SubscribeEvent
-    public static void onAddPackFinders(AddPackFindersEvent event) {
+    public static void onAddPackFinders(FMLCommonSetupEvent event) throws Exception {
         // 在客户端设置完成后执行资源包生成
         createResourcePack();
         for (Block block : BuiltInRegistries.BLOCK) {
@@ -53,86 +62,92 @@ public class ModResourcePack {
                         blockId.getNamespace(),
                         "blockstates/" + blockId.getPath() + ".json"
                 );
-                Path blockstatePath = FMLPaths.GAMEDIR.get().resolve("linweiyun").resolve("ModResourcePack").resolve("assets").resolve(blockId.getNamespace()).resolve("blockstates")
+                Path blockstatePath = FMLPaths.GAMEDIR.get().resolve("resourcepacks").resolve(RESOURCE_PACK_NAME).resolve("assets").resolve(blockId.getNamespace()).resolve("blockstates")
                         .resolve(blockId.getPath() + ".json");
                 if (!Files.exists(blockstatePath)){
                     loadBlockstateFromResource(blockstateLocation);
-                    requireReloadResourcePack = true;
-                    lastResourceBlockPath = blockstatePath;
+//                    requireReloadResourcePack = true;
+//                    lastResourceBlockPath = blockstatePath;
                 }
 
 
             }
         }
-        registerResourcePack(event);
+//        LVSGameConfig gameConfig = new LVSGameConfig(FMLPaths.GAMEDIR.get().resolve("options.txt"));
+//        gameConfig.addResourcePack(RESOURCE_PACK_NAME);
+//        gameConfig.writeToFile();
+//        registerResourcePack(event);
 
     }
 
 
-    private static void registerResourcePack(AddPackFindersEvent event) {
 
-        if (event.getPackType() != PackType.CLIENT_RESOURCES) {
-            return;
-        }
-        Path packPath = FMLPaths.GAMEDIR.get().resolve("linweiyun").resolve("ModResourcePack");
-        if (!Files.exists(packPath)) {
-            return;
-        }
-        // 创建 PackLocationInfo
-        PackLocationInfo locationInfo = new PackLocationInfo(
-                "linweiyun:internal_resources", // 包的唯一标识符
-                Component.literal("内置资源包示例"), // 在游戏界面中显示的名称
-                PackSource.DEFAULT, // 包来源，DEFUALT 表示默认来源
-                Optional.empty() // 可选固定版本信息
-        );
 
-        // 创建 ResourcesSupplier
-        Pack.ResourcesSupplier resourcesSupplier = new Pack.ResourcesSupplier() {
-            @Override
-            public PathPackResources openPrimary(PackLocationInfo locationInfo) {
-                // 提供主要的资源包内容
-                return new PathPackResources(locationInfo, packPath);
-            }
+//    @SubscribeEvent
+//    private static void registerResourcePack(AddPackFindersEvent event) throws Exception {
 
-            @Override
-            public PathPackResources openFull(PackLocationInfo locationInfo, Pack.Metadata metadata) {
-                // 对于大多数情况，使用与 openPrimary 相同的逻辑
-                return openPrimary(locationInfo);
-            }
-        };
-
-        Pack.Metadata metadata;
-        try {
-            // 尝试从资源包目录读取 pack.mcmeta
-            metadata = Pack.readPackMetadata(locationInfo, resourcesSupplier, 34);
-        } catch (Exception e) {
-            // 如果读取失败（例如元数据不存在），创建一个默认的 Metadata
-            // 请根据你的实际情况调整默认的 Metadata 构造参数
-            // 下面的参数是示例，你需要查看你的游戏版本中 Pack.Metadata 的正确构造方法
-            metadata = new Pack.Metadata(
-                    Component.literal("KFC强制材质包"),
-                    PackCompatibility.COMPATIBLE,
-                    FeatureFlagSet.of(),
-                    List.of(),
-                    false
-            );
-        }
-        // 4. 创建 PackSelectionConfig
-        PackSelectionConfig selectionConfig = new PackSelectionConfig(
-                true,// 标题
-                Pack.Position.TOP, // 位置// 固定位置
-                true // 来源
-        );
-        Pack pack = new Pack(
-                locationInfo,
-                resourcesSupplier,
-                metadata,
-                selectionConfig  // 指定包在列表中的位置，TOP 会使其出现在顶部
-
-        );
-        event.addRepositorySource((consumer) -> consumer.accept(pack));
-        Minecraft.getInstance().reloadResourcePacks();
-    }
+//        if (event.getPackType() != PackType.CLIENT_RESOURCES) {
+//            return;
+//        }
+//        Path packPath = FMLPaths.GAMEDIR.get().resolve("linweiyun").resolve(RESOURCE_PACK_NAME);
+//        if (!Files.exists(packPath)) {
+//            return;
+//        }
+//        // 创建 PackLocationInfo
+//        PackLocationInfo locationInfo = new PackLocationInfo(
+//                "linweiyun:internal_resources", // 包的唯一标识符
+//                Component.literal("内置资源包示例"), // 在游戏界面中显示的名称
+//                PackSource.DEFAULT, // 包来源，DEFUALT 表示默认来源
+//                Optional.empty() // 可选固定版本信息
+//        );
+//
+//        // 创建 ResourcesSupplier
+//        Pack.ResourcesSupplier resourcesSupplier = new Pack.ResourcesSupplier() {
+//            @Override
+//            public PathPackResources openPrimary(PackLocationInfo locationInfo) {
+//                // 提供主要的资源包内容
+//                return new PathPackResources(locationInfo, packPath);
+//            }
+//
+//            @Override
+//            public PathPackResources openFull(PackLocationInfo locationInfo, Pack.Metadata metadata) {
+//                // 对于大多数情况，使用与 openPrimary 相同的逻辑
+//                return openPrimary(locationInfo);
+//            }
+//        };
+//
+//        Pack.Metadata metadata;
+//        try {
+//            // 尝试从资源包目录读取 pack.mcmeta
+//            metadata = Pack.readPackMetadata(locationInfo, resourcesSupplier, 34);
+//        } catch (Exception e) {
+//            // 如果读取失败（例如元数据不存在），创建一个默认的 Metadata
+//            // 请根据你的实际情况调整默认的 Metadata 构造参数
+//            // 下面的参数是示例，你需要查看你的游戏版本中 Pack.Metadata 的正确构造方法
+//            metadata = new Pack.Metadata(
+//                    Component.literal("KFC强制材质包"),
+//                    PackCompatibility.COMPATIBLE,
+//                    FeatureFlagSet.of(),
+//                    List.of(),
+//                    false
+//            );
+//        }
+//        // 4. 创建 PackSelectionConfig
+//        PackSelectionConfig selectionConfig = new PackSelectionConfig(
+//                true,// 标题
+//                Pack.Position.TOP, // 位置// 固定位置
+//                true // 来源
+//        );
+//        Pack pack = new Pack(
+//                locationInfo,
+//                resourcesSupplier,
+//                metadata,
+//                selectionConfig  // 指定包在列表中的位置，TOP 会使其出现在顶部
+//
+//        );
+//        event.addRepositorySource((consumer) -> consumer.accept(pack));
+//        Minecraft.getInstance().reloadResourcePacks();
+//    }
 //    @SubscribeEvent
 //    public static void onCommonSetup(FMLCommonSetupEvent event) {
 //        // 在此事件中调用 loadBlockstateData
@@ -171,7 +186,7 @@ public class ModResourcePack {
                         "  }\n" +
                         "}";
 
-                Files.write(packMetaPath, packMetaContent.getBytes());
+                Files.write(packMetaPath, packMetaContent.getBytes(StandardCharsets.UTF_8));
             }
 
             // 添加: 复制 pack.png 到资源包根目录

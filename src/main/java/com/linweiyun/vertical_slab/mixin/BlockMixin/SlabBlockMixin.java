@@ -49,6 +49,7 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
     @Final
     public static EnumProperty<SlabType> TYPE;
 
+
     @Unique
     private static final DirectionProperty CLICKED_FACE = DirectionProperty.create("clicked_face");
     @Unique
@@ -66,6 +67,8 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
         builder.add(CLICKED_FACE);
         builder.add(SHIFT_MODE);
     }
+
+
     @Inject(method = "getStateForPlacement", at = @At("RETURN"), cancellable = true)
     private void getStateForPlacement(BlockPlaceContext context, CallbackInfoReturnable<BlockState> cir) {
         BlockState originalState = cir.getReturnValue();
