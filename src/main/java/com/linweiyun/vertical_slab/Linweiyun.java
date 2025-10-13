@@ -59,7 +59,6 @@ public class Linweiyun
             config.addResourcePack(RESOURCE_PACK_NAME);
             config.writeToFile();
         } catch (Exception e) {
-            // 简单的错误处理
             System.err.println("Failed to add resource pack: " + e.getMessage());
         }
     }

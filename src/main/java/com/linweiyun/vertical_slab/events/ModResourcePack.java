@@ -132,10 +132,10 @@ public class ModResourcePack {
 //                    false
 //            );
 //        }
-//        // 4. 创建 PackSelectionConfig
+//        // 创建 PackSelectionConfig
 //        PackSelectionConfig selectionConfig = new PackSelectionConfig(
 //                true,// 标题
-//                Pack.Position.TOP, // 位置// 固定位置
+//                Pack.Position.TOP, // 位置固定位置
 //                true // 来源
 //        );
 //        Pack pack = new Pack(
@@ -214,7 +214,6 @@ public class ModResourcePack {
     private static void loadBlockstateFromResource(ResourceLocation location) {
         // 这里需要获取Minecraft的资源管理器
         // 通常需要在资源重载监听器中执行
-        // 简化示例：
 
         ResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
         if (resourceManager != null) {
@@ -259,9 +258,9 @@ public class ModResourcePack {
     }
 
     private static boolean isMyCustomBlockstate(JsonObject blockstateData) {
-        // 检查是否存在自定义字段，并且其值符合你的预期
+        // 检查是否存在自定义字段
         if (blockstateData.has("is_mod_pack")) {
-            // 根据你的字段实际类型进行调整，这里假设是布尔值
+
             return blockstateData.get("is_mod_pack").getAsBoolean();
         }
         return false;
@@ -309,8 +308,6 @@ public class ModResourcePack {
 
                 System.out.println("Successfully packed resource pack to: " + zipPath);
 
-                // 可选：删除原始文件夹以保持整洁
-                // deleteResourcePackFolder();
 
             } catch (IOException e) {
                 System.err.println("Failed to create ZIP file: " + e.getMessage());

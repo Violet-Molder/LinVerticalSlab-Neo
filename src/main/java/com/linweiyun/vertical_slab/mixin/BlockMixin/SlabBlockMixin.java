@@ -99,7 +99,6 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
         if (isSneaking || clickedFace == Direction.UP || clickedFace == Direction.DOWN) {
             // 可能调用原版逻辑，或者直接返回 false
             // cir.setReturnValue(false);
-            // 或者不注入，让原版逻辑处理？
             return; // 不取消，让原版逻辑继续
         }
 

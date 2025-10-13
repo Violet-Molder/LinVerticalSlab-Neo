@@ -15,7 +15,6 @@ public class SlabBlockstate {
         variants.put("shift_mode=true,type=bottom", new LinVariant(bottomModel, null, null));
         variants.put("shift_mode=true,type=top", new LinVariant(topModel, null, null));
         variants.put("shift_mode=false,clicked_face=up,type=top", new LinVariant(bottomModel, null, null));
-        variants.put("shift_mode=false,clicked_face=down,type=top", new LinVariant(bottomModel, 90, null));
         variants.put("shift_mode=false,clicked_face=east,type=top", new LinVariant(bottomModel, 90, 90));
         variants.put("shift_mode=false,clicked_face=west,type=top", new LinVariant(bottomModel, 90, 270));
         variants.put("shift_mode=false,clicked_face=south,type=top", new LinVariant(bottomModel, 90, 180));
@@ -35,11 +34,13 @@ public class SlabBlockstate {
         public String model;
         public Integer x;
         public Integer y;
+        public boolean uvlock;
 
         public LinVariant(String model, Integer x, Integer y) {
             this.model = model;
             this.x = x;
             this.y = y;
+            this.uvlock = true;
         }
     }
 }
