@@ -1,16 +1,5 @@
 package com.linweiyun.vertical_slab;
 
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.main.GameConfig;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.fml.loading.FMLPaths;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.server.ServerStartedEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -25,22 +14,17 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
-
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 
 
 @Mod(Linweiyun.MOD_ID)
 public class Linweiyun
 {
-    public static final String RESOURCE_PACK_NAME = "LinVerticalSlab-MOD-ResourcePack";
+
     public static final String MOD_ID = "vertical_slab";
+    public static final String GAME_VERSION = "1.21.1";
+    public static final String RESOURCE_PACK_NAME = "LVS-MOD-Pack" + "-" + GAME_VERSION;
     private static final Logger LOGGER = LogUtils.getLogger();
     public Linweiyun(IEventBus modEventBus, ModContainer modContainer) throws Exception {
         modEventBus.addListener(this::commonSetup);
@@ -49,18 +33,6 @@ public class Linweiyun
 
 
 
-    }
-
-
-    public static void init(Path minecraftPath) {
-        try {
-            // 直接应用资源包
-            LVSGameConfig config = new LVSGameConfig(minecraftPath.resolve("options.txt"));
-            config.addResourcePack(RESOURCE_PACK_NAME);
-            config.writeToFile();
-        } catch (Exception e) {
-            System.err.println("Failed to add resource pack: " + e.getMessage());
-        }
     }
 
     private void commonSetup(final FMLCommonSetupEvent event)

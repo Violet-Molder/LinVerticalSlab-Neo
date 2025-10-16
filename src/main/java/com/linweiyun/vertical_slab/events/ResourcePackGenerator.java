@@ -3,6 +3,8 @@ package com.linweiyun.vertical_slab.events;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.linweiyun.vertical_slab.Linweiyun;
 import com.linweiyun.vertical_slab.SlabBlockstate;
 import net.minecraft.client.Minecraft;
@@ -13,6 +15,7 @@ import net.neoforged.fml.loading.FMLPaths;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -23,6 +26,7 @@ import static com.linweiyun.vertical_slab.Linweiyun.RESOURCE_PACK_NAME;
 public class ResourcePackGenerator {
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
     private static final Path resourcePackPath = FMLPaths.GAMEDIR.get().resolve("resourcepacks").resolve(RESOURCE_PACK_NAME);
+    private static final String PACK_VERSION = "21.1.10";
 
     public static void createResourcePack() {
         try {
@@ -32,14 +36,41 @@ public class ResourcePackGenerator {
 
             // 创建 pack.mcmeta
             Path packMetaPath = resourcePackPath.resolve("pack.mcmeta");
-            if (!Files.exists(packMetaPath)) {
+            boolean needRegenerate = false;
+            if (Files.exists(packMetaPath)) {
+                try (Reader reader = Files.newBufferedReader(packMetaPath)) {
+                    JsonObject metaData = JsonParser.parseReader(reader).getAsJsonObject();
+                    if (metaData.has("version")) {
+                        String existingVersion = metaData.get("version").getAsString();
+                        if (!PACK_VERSION.equals(existingVersion)) {
+                            needRegenerate = true;
+                        }
+                    } else {
+                        needRegenerate = true; // 没有版本信息也需要重新生成
+                    }
+                } catch (Exception e) {
+                    needRegenerate = true; // 解析失败需要重新生成
+                }
+            } else {
+                needRegenerate = true; // 文件不存在需要生成
+            }
+
+            // 如果需要重新生成，先删除旧的资源包内容
+            if (needRegenerate) {
+                deleteResourcePackContents();
+                Files.createDirectories(resourcePackPath);
+            }
+
+            // 生成 pack.mcmeta 文件（无论是否需要重新生成都会执行）
+            if (needRegenerate || !Files.exists(packMetaPath)) {
                 String packMetaContent = """
                 {
                   "pack": {
                     "pack_format": 34,
                     "description": "竖半砖MOD资源包"
-                  }
-                }""";
+                  },
+                  "version": "%s"
+                }""".formatted(PACK_VERSION);
                 Files.writeString(packMetaPath, packMetaContent);
             }
             Path iconPath = resourcePackPath.resolve("pack.png");
@@ -53,6 +84,29 @@ public class ResourcePackGenerator {
                         Files.copy(inputStream, iconPath);
                     }
                 }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 删除资源包内容但保留目录结构
+     */
+    private static void deleteResourcePackContents() {
+        try {
+            // 删除资源包中的所有文件和文件夹，但保留根目录
+            if (Files.exists(resourcePackPath)) {
+                Files.walk(resourcePackPath)
+                        .sorted(java.util.Comparator.reverseOrder())
+                        .filter(path -> !path.equals(resourcePackPath)) // 不删除根目录
+                        .forEach(path -> {
+                            try {
+                                Files.deleteIfExists(path);
+                            } catch (IOException e) {
+                                System.err.println("无法删除文件: " + path);
+                            }
+                        });
             }
         } catch (IOException e) {
             e.printStackTrace();

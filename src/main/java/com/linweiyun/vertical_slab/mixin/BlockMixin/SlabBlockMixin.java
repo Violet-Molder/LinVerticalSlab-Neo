@@ -5,7 +5,6 @@ import com.linweiyun.vertical_slab.events.SlabConfigManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -87,7 +86,6 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
         if (!shouldModifyCollision(state)) {
             return;
         }
-
         if (state.getValue(WATERLOGGED)) {
             level.scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
         }
@@ -171,7 +169,8 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
             FluidState fluidState = context.getLevel().getFluidState(context.getClickedPos());
             boolean waterlogged = fluidState.getType() == Fluids.WATER;
 
-            if (context.getPlayer().isShiftKeyDown()) {
+            // 合并台阶时
+            if (context.getPlayer() != null && context.getPlayer().isShiftKeyDown()) {
                 // 获取被点击的方块位置 - 通过点击面反向偏移
                 BlockPos clickedPos = context.getClickedPos().relative(context.getClickedFace().getOpposite());
                 Block clickedBlock = context.getLevel().getBlockState(clickedPos).getBlock();
@@ -206,15 +205,6 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
                 // 其他情况使用原版逻辑
                 cir.setReturnValue(originalState.setValue(SHIFT_MODE, true).setValue(WATERLOGGED, waterlogged));
 
-            } else {
-                BlockPos clickedPos = context.getClickedPos();
-                Block clickedBlock = context.getLevel().getBlockState(clickedPos).getBlock();
-                if (clickedBlock == this) {
-                    // 合并台阶时
-                    cir.setReturnValue(originalState.setValue(TYPE, SlabType.DOUBLE).setValue(WATERLOGGED, waterlogged));
-                } else {
-                    cir.setReturnValue(originalState.setValue(CLICKED_FACE, context.getClickedFace()).setValue(WATERLOGGED, waterlogged));
-                }
             }
         }
         // 如果 shouldModifyCollision 返回 false，则不修改原版行为
@@ -240,6 +230,17 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
                 }
             }
         }
+
+        BlockPos clickedPos = context.getClickedPos();
+        Block clickedBlock = context.getLevel().getBlockState(clickedPos).getBlock();
+        if (stack.is(clickedBlock.asItem())) {
+            SlabType slabtype = state.getValue(TYPE);
+            if (slabtype != SlabType.DOUBLE) {
+                cir.setReturnValue(true);
+            }
+        }
+
+
     }
 
     @Inject(method = "getShape", at = @At("HEAD"), cancellable = true)
@@ -249,7 +250,7 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
         if (state.getValue(SHIFT_MODE) || !state.getValue(HAS_MODELS)) {
             cir.setReturnValue(getVoxelShapeForSlab(slabType));
         } else {
-            VoxelShape shape = getVoxelShapeForSlab(slabType, clickedFace, state);
+            VoxelShape shape = getVoxelShapeForSlab(slabType, clickedFace);
             if (shape != null) {
                 cir.setReturnValue(shape);
             }
@@ -271,41 +272,20 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
 
     // 根据 slabType 和 clickedFace 计算正确的碰撞体积
     @Unique
-    private VoxelShape getVoxelShapeForSlab(SlabType slabType, Direction clickedFace, BlockState state) {
+    private VoxelShape getVoxelShapeForSlab(SlabType slabType, Direction clickedFace) {
 
         switch (slabType) {
             case DOUBLE:
                 return Shapes.block();
-            case TOP:
-                switch (clickedFace) {
-                    case UP:
-                        return Block.box(0.0, 0.0, 0.0, 16.0, 8.0, 16.0);
-                    case DOWN:
-                        return Block.box(0.0, 8.0, 0.0, 16.0, 16.0, 16.0);
-                    case NORTH:
-                        return Block.box(0.0, 0.0, 8.0, 16.0, 16.0, 16.0);
-                    case SOUTH:
-                        return Block.box(0.0, 0.0, 0.0, 16.0, 16.0, 8.0);
-                    case WEST:
-                        return Block.box(8.0, 0.0, 0.0, 16.0, 16.0, 16.0);
-                    case EAST:
-                        return Block.box(0.0, 0.0, 0.0, 8.0, 16.0, 16.0);
-                }
-            case BOTTOM:
-                switch (clickedFace) {
-                    case UP:
-                        return Block.box(0.0, 0.0, 0.0, 16.0, 8.0, 16.0);
-                    case DOWN:
-                        return Block.box(0.0, 8.0, 0.0, 16.0, 16.0, 16.0);
-                    case NORTH:
-                        return Block.box(0.0, 0.0, 8.0, 16.0, 16.0, 16.0);
-                    case SOUTH:
-                        return Block.box(0.0, 0.0, 0.0, 16.0, 16.0, 8.0);
-                    case WEST:
-                        return Block.box(8.0, 0.0, 0.0, 16.0, 16.0, 16.0);
-                    case EAST:
-                        return Block.box(0.0, 0.0, 0.0, 8.0, 16.0, 16.0);
-                }
+            case TOP, BOTTOM:
+                return switch (clickedFace) {
+                    case UP -> Block.box(0.0, 0.0, 0.0, 16.0, 8.0, 16.0);
+                    case DOWN -> Block.box(0.0, 8.0, 0.0, 16.0, 16.0, 16.0);
+                    case NORTH -> Block.box(0.0, 0.0, 8.0, 16.0, 16.0, 16.0);
+                    case SOUTH -> Block.box(0.0, 0.0, 0.0, 16.0, 16.0, 8.0);
+                    case WEST -> Block.box(8.0, 0.0, 0.0, 16.0, 16.0, 16.0);
+                    case EAST -> Block.box(0.0, 0.0, 0.0, 8.0, 16.0, 16.0);
+                };
         }
 
         return null;
