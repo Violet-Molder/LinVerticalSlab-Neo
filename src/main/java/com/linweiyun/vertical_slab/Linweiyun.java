@@ -62,50 +62,6 @@ public class Linweiyun
             System.err.println("Failed to add resource pack: " + e.getMessage());
         }
     }
-    private static Map<String, Boolean> playerRequireReloadStates = new HashMap<>();
-//    @SubscribeEvent
-//    @OnlyIn(Dist.CLIENT)
-//    public void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
-//        // 获取事件中的玩家对象
-//        Player player = event.getEntity();
-//        String playerName = player.getName().getString();
-//
-//        playerRequireReloadStates.putIfAbsent(playerName, true);
-//        player.sendSystemMessage(Component.literal(playerRequireReloadStates.toString()));
-//
-//        // 再判断该玩家在map里是true还是false，如果是true则执行重载
-//        if (playerRequireReloadStates.get(playerName)) {
-//            ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-//
-//            if (Files.exists(lastResourceBlockPath)) {
-//                scheduler.schedule(() -> {
-//                    if (player instanceof ServerPlayer serverPlayer) {
-//                        Minecraft.getInstance().reloadResourcePacks();
-//                        playerRequireReloadStates.put(playerName, false);
-//                    }
-//                }, 2, TimeUnit.SECONDS);
-//            } else {
-//                scheduler.schedule(() -> {
-//                    if (player instanceof ServerPlayer serverPlayer) {
-//                        Minecraft.getInstance().reloadResourcePacks();
-//                        playerRequireReloadStates.put(playerName, false);
-//                    }
-//                }, 7, TimeUnit.SECONDS);
-//            }
-//        }
-//
-//    }
-//    @SubscribeEvent
-//    public void onServerStarted(ServerStartedEvent event)
-//    {
-//        if (requireReloadResourcePack) {
-//            // 循环Map所有项，把所有玩家的都改为true
-//            for (Map.Entry<String, Boolean> entry : playerRequireReloadStates.entrySet()) {
-//                entry.setValue(true);
-//            }
-//            requireReloadResourcePack = false;
-//        }
-//    }
 
     private void commonSetup(final FMLCommonSetupEvent event)
     {
