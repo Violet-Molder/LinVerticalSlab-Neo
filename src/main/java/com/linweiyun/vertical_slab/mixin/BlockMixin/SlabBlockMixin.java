@@ -6,6 +6,7 @@ import com.linweiyun.vertical_slab.events.SlabConfigManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
@@ -232,15 +233,31 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
         // 获取玩家点击的面和潜行状态
         Direction clickedFace = context.getClickedFace();
         ItemStack stack = context.getItemInHand();
+
         // 如果手持同种台阶，并且当前方块不是双台阶，则可允许替换（用于合并）
-        if (stack.is(this.asItem())) {
-            SlabType slabtype = state.getValue(TYPE);
-            if (slabtype != SlabType.DOUBLE) {
-                if (state.getValue(CLICKED_FACE) == clickedFace) {
+        if (context.replacingClickedOnBlock()){
+            if (stack.is(this.asItem())) {
+                SlabType slabtype = state.getValue(TYPE);
+                if (slabtype != SlabType.DOUBLE) {
+                    if (state.getValue(CLICKED_FACE) == clickedFace) {
+                        cir.setReturnValue(true);
+                    }
+                }
+            }
+        } else {
+            BlockPos clickedPos = context.getClickedPos();
+            Block clickedBlock = context.getLevel().getBlockState(clickedPos).getBlock();
+            if (stack.is(clickedBlock.asItem())) {
+                SlabType slabtype = state.getValue(TYPE);
+                if (slabtype != SlabType.DOUBLE) {
                     cir.setReturnValue(true);
                 }
             }
         }
+
+
+
+
     }
 
     @Inject(method = "getShape", at = @At("HEAD"), cancellable = true)
@@ -250,7 +267,7 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
         if (state.getValue(SHIFT_MODE) || !state.getValue(HAS_MODELS)) {
             cir.setReturnValue(getVoxelShapeForSlab(slabType));
         } else {
-            VoxelShape shape = getVoxelShapeForSlab(slabType, clickedFace, state);
+            VoxelShape shape = getVoxelShapeForSlab(slabType, clickedFace);
             if (shape != null) {
                 cir.setReturnValue(shape);
             }
@@ -259,54 +276,29 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
 
     @Unique
     private VoxelShape getVoxelShapeForSlab(SlabType slabType) {
-        switch (slabType) {
-            case DOUBLE:
-                return Shapes.block();
-            case TOP:
-                return Block.box(0.0, 8.0, 0.0, 16.0, 16.0, 16.0);
-            case BOTTOM:
-                return Block.box(0.0, 0.0, 0.0, 16.0, 8.0, 16.0);
-        }
-        return null;
+        return switch (slabType) {
+            case DOUBLE -> Shapes.block();
+            case TOP -> Block.box(0.0, 8.0, 0.0, 16.0, 16.0, 16.0);
+            case BOTTOM -> Block.box(0.0, 0.0, 0.0, 16.0, 8.0, 16.0);
+        };
     }
 
     // 根据 slabType 和 clickedFace 计算正确的碰撞体积
     @Unique
-    private VoxelShape getVoxelShapeForSlab(SlabType slabType, Direction clickedFace, BlockState state) {
+    private VoxelShape getVoxelShapeForSlab(SlabType slabType, Direction clickedFace) {
 
             switch (slabType) {
                 case DOUBLE:
                     return Shapes.block();
-                case TOP:
-                    switch (clickedFace) {
-                        case UP:
-                            return Block.box(0.0, 0.0, 0.0, 16.0, 8.0, 16.0);
-                        case DOWN:
-                            return Block.box(0.0, 8.0, 0.0, 16.0, 16.0, 16.0);
-                        case NORTH:
-                            return Block.box(0.0, 0.0, 8.0, 16.0, 16.0, 16.0);
-                        case SOUTH:
-                            return Block.box(0.0, 0.0, 0.0, 16.0, 16.0, 8.0);
-                        case WEST:
-                            return Block.box(8.0, 0.0, 0.0, 16.0, 16.0, 16.0);
-                        case EAST:
-                            return Block.box(0.0, 0.0, 0.0, 8.0, 16.0, 16.0);
-                    }
-                case BOTTOM:
-                    switch (clickedFace) {
-                        case UP:
-                            return Block.box(0.0, 0.0, 0.0, 16.0, 8.0, 16.0);
-                        case DOWN:
-                            return Block.box(0.0, 8.0, 0.0, 16.0, 16.0, 16.0);
-                        case NORTH:
-                            return Block.box(0.0, 0.0, 8.0, 16.0, 16.0, 16.0);
-                        case SOUTH:
-                            return Block.box(0.0, 0.0, 0.0, 16.0, 16.0, 8.0);
-                        case WEST:
-                            return Block.box(8.0, 0.0, 0.0, 16.0, 16.0, 16.0);
-                        case EAST:
-                            return Block.box(0.0, 0.0, 0.0, 8.0, 16.0, 16.0);
-                    }
+                case TOP, BOTTOM:
+                    return switch (clickedFace) {
+                        case UP -> Block.box(0.0, 0.0, 0.0, 16.0, 8.0, 16.0);
+                        case DOWN -> Block.box(0.0, 8.0, 0.0, 16.0, 16.0, 16.0);
+                        case NORTH -> Block.box(0.0, 0.0, 8.0, 16.0, 16.0, 16.0);
+                        case SOUTH -> Block.box(0.0, 0.0, 0.0, 16.0, 16.0, 8.0);
+                        case WEST -> Block.box(8.0, 0.0, 0.0, 16.0, 16.0, 16.0);
+                        case EAST -> Block.box(0.0, 0.0, 0.0, 8.0, 16.0, 16.0);
+                    };
             }
 
         return null;
