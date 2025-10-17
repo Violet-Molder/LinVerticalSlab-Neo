@@ -26,7 +26,6 @@ import static com.linweiyun.vertical_slab.Linweiyun.RESOURCE_PACK_NAME;
 public class ResourcePackGenerator {
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
     private static final Path resourcePackPath = FMLPaths.GAMEDIR.get().resolve("resourcepacks").resolve(RESOURCE_PACK_NAME);
-    private static final String PACK_VERSION = "21.1.10";
 
     public static void createResourcePack() {
         try {
@@ -42,7 +41,7 @@ public class ResourcePackGenerator {
                     JsonObject metaData = JsonParser.parseReader(reader).getAsJsonObject();
                     if (metaData.has("version")) {
                         String existingVersion = metaData.get("version").getAsString();
-                        if (!PACK_VERSION.equals(existingVersion)) {
+                        if (!Linweiyun.MOD_VERSION.equals(existingVersion)) {
                             needRegenerate = true;
                         }
                     } else {
@@ -70,7 +69,7 @@ public class ResourcePackGenerator {
                     "description": "竖半砖MOD资源包"
                   },
                   "version": "%s"
-                }""".formatted(PACK_VERSION);
+                }""".formatted(Linweiyun.MOD_VERSION);
                 Files.writeString(packMetaPath, packMetaContent);
             }
             Path iconPath = resourcePackPath.resolve("pack.png");

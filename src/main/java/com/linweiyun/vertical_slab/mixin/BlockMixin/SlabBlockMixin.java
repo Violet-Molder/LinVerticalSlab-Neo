@@ -169,7 +169,6 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
             FluidState fluidState = context.getLevel().getFluidState(context.getClickedPos());
             boolean waterlogged = fluidState.getType() == Fluids.WATER;
 
-            // 合并台阶时
             if (context.getPlayer() != null && context.getPlayer().isShiftKeyDown()) {
                 // 获取被点击的方块位置 - 通过点击面反向偏移
                 BlockPos clickedPos = context.getClickedPos().relative(context.getClickedFace().getOpposite());
@@ -205,6 +204,15 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
                 // 其他情况使用原版逻辑
                 cir.setReturnValue(originalState.setValue(SHIFT_MODE, true).setValue(WATERLOGGED, waterlogged));
 
+            } else {
+                BlockPos clickedPos = context.getClickedPos();
+                Block clickedBlock = context.getLevel().getBlockState(clickedPos).getBlock();
+                if (clickedBlock == this) {
+                    // 合并台阶时
+                    cir.setReturnValue(originalState.setValue(TYPE, SlabType.DOUBLE).setValue(WATERLOGGED, waterlogged));
+                } else {
+                    cir.setReturnValue(originalState.setValue(CLICKED_FACE, context.getClickedFace()).setValue(WATERLOGGED, waterlogged));
+                }
             }
         }
         // 如果 shouldModifyCollision 返回 false，则不修改原版行为
@@ -221,24 +229,29 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
         // 获取玩家点击的面和潜行状态
         Direction clickedFace = context.getClickedFace();
         ItemStack stack = context.getItemInHand();
+
         // 如果手持同种台阶，并且当前方块不是双台阶，则可允许替换（用于合并）
-        if (stack.is(this.asItem())) {
-            SlabType slabtype = state.getValue(TYPE);
-            if (slabtype != SlabType.DOUBLE) {
-                if (state.getValue(CLICKED_FACE) == clickedFace) {
+        if (context.replacingClickedOnBlock()){
+            if (stack.is(this.asItem())) {
+                SlabType slabtype = state.getValue(TYPE);
+                if (slabtype != SlabType.DOUBLE) {
+                    if (state.getValue(CLICKED_FACE) == clickedFace) {
+                        cir.setReturnValue(true);
+                    }
+                }
+            }
+        } else {
+            BlockPos clickedPos = context.getClickedPos();
+            Block clickedBlock = context.getLevel().getBlockState(clickedPos).getBlock();
+            if (stack.is(clickedBlock.asItem())) {
+                SlabType slabtype = state.getValue(TYPE);
+                if (slabtype != SlabType.DOUBLE) {
                     cir.setReturnValue(true);
                 }
             }
         }
 
-        BlockPos clickedPos = context.getClickedPos();
-        Block clickedBlock = context.getLevel().getBlockState(clickedPos).getBlock();
-        if (stack.is(clickedBlock.asItem())) {
-            SlabType slabtype = state.getValue(TYPE);
-            if (slabtype != SlabType.DOUBLE) {
-                cir.setReturnValue(true);
-            }
-        }
+
 
 
     }
@@ -259,15 +272,11 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
 
     @Unique
     private VoxelShape getVoxelShapeForSlab(SlabType slabType) {
-        switch (slabType) {
-            case DOUBLE:
-                return Shapes.block();
-            case TOP:
-                return Block.box(0.0, 8.0, 0.0, 16.0, 16.0, 16.0);
-            case BOTTOM:
-                return Block.box(0.0, 0.0, 0.0, 16.0, 8.0, 16.0);
-        }
-        return null;
+        return switch (slabType) {
+            case DOUBLE -> Shapes.block();
+            case TOP -> Block.box(0.0, 8.0, 0.0, 16.0, 16.0, 16.0);
+            case BOTTOM -> Block.box(0.0, 0.0, 0.0, 16.0, 8.0, 16.0);
+        };
     }
 
     // 根据 slabType 和 clickedFace 计算正确的碰撞体积

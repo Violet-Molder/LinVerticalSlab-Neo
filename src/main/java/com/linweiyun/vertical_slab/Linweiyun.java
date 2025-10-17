@@ -1,5 +1,6 @@
 package com.linweiyun.vertical_slab;
 
+import net.minecraft.world.level.block.TorchBlock;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -23,7 +24,8 @@ public class Linweiyun
 {
 
     public static final String MOD_ID = "vertical_slab";
-    public static final String GAME_VERSION = "1.21.1";
+    public static final String GAME_VERSION =  "1.21.1";
+    public static final String MOD_VERSION = "21.1.10";
     public static final String RESOURCE_PACK_NAME = "LVS-MOD-Pack" + "-" + GAME_VERSION;
     private static final Logger LOGGER = LogUtils.getLogger();
     public Linweiyun(IEventBus modEventBus, ModContainer modContainer) throws Exception {
