@@ -3,6 +3,7 @@
   "package": "com.linweiyun.vertical_slab.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "BlockMixin.PistonBaseBlockMixin",
     "BlockMixin.SlabBlockMixin"
   ],
   "injectors": {

@@ -66,6 +66,7 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
     private static final BooleanProperty HAS_MODELS = BooleanProperty.create("has_models");
 
 
+
     @Inject(method = "createBlockStateDefinition", at = @At("TAIL"))
     private void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder, CallbackInfo ci) {
 
