@@ -19,7 +19,8 @@ public class Linweiyun
 {
 
     public static final String MOD_ID = "vertical_slab";
-    public static final String GAME_VERSION = "1.21.9";
+    public static final String GAME_VERSION =  "1.21.9";
+    public static final String MOD_VERSION = "21.9.10";
     public static final String RESOURCE_PACK_NAME = "LVS-MOD-Pack" + "-" + GAME_VERSION;
     private static final Logger LOGGER = LogUtils.getLogger();
     public Linweiyun(IEventBus modEventBus, ModContainer modContainer) throws Exception {
