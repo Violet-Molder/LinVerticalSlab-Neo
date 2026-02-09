@@ -78,7 +78,7 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
     private void injectInit(Properties properties, CallbackInfo ci) {
         this.registerDefaultState(this.defaultBlockState()
                 .setValue(CLICKED_FACE, Direction.DOWN)
-                .setValue(SHIFT_MODE, false)
+                .setValue(SHIFT_MODE, true)
                 .setValue(HAS_MODELS, false)
         );
     }
@@ -174,37 +174,6 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
             boolean waterlogged = fluidState.getType() == Fluids.WATER;
 
             if (context.getPlayer().isShiftKeyDown()) {
-                // 获取被点击的方块位置 - 通过点击面反向偏移
-                BlockPos clickedPos = context.getClickedPos().relative(context.getClickedFace().getOpposite());
-                Block clickedBlock = context.getLevel().getBlockState(clickedPos).getBlock();
-
-                // 检查被点击的方块是否为台阶类型（任何台阶都可以）
-                if (clickedBlock instanceof SlabBlock) {
-                    // 如果目标是台阶，检查是否为竖半砖
-                    BlockState existingState = context.getLevel().getBlockState(clickedPos);
-                    if (existingState.hasProperty(SHIFT_MODE) && !existingState.getValue(SHIFT_MODE) &&
-                            existingState.hasProperty(CLICKED_FACE)) {
-                        // 目标是竖半砖，检查点击面是否为小面
-                        Direction clickedFace = existingState.getValue(CLICKED_FACE);
-                        Direction clickDirection = context.getClickedFace();
-
-                        // 判断是否点击小面（与竖半砖朝向垂直的面）
-                        boolean isSmallFace = false;
-                        if (clickedFace.getAxis() == Direction.Axis.X) { // 竖半砖朝东或西
-                            isSmallFace = (clickDirection == Direction.NORTH || clickDirection == Direction.SOUTH || clickDirection == Direction.UP || clickDirection == Direction.DOWN);
-                        } else if (clickedFace.getAxis() == Direction.Axis.Z) { // 竖半砖朝南或北
-                            isSmallFace = (clickDirection == Direction.EAST || clickDirection == Direction.WEST || clickDirection == Direction.UP || clickDirection == Direction.DOWN);
-                        }
-
-                        if (isSmallFace) { // 确保是侧面且点击小面
-                            cir.setReturnValue(originalState
-                                    .setValue(SHIFT_MODE, false) // 保持竖立
-                                    .setValue(CLICKED_FACE, clickedFace) // 复制方向
-                                    .setValue(WATERLOGGED, waterlogged)); // 保持含水状态
-                            return;
-                        }
-                    }
-                }
                 // 其他情况使用原版逻辑
                 cir.setReturnValue(originalState.setValue(SHIFT_MODE, true).setValue(WATERLOGGED, waterlogged));
 
@@ -215,7 +184,7 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
                     // 合并台阶时
                     cir.setReturnValue(originalState.setValue(TYPE, SlabType.DOUBLE).setValue(WATERLOGGED, waterlogged));
                 } else {
-                    cir.setReturnValue(originalState.setValue(CLICKED_FACE, context.getClickedFace()).setValue(WATERLOGGED, waterlogged));
+                    cir.setReturnValue(originalState.setValue(CLICKED_FACE, context.getClickedFace()).setValue(WATERLOGGED, waterlogged).setValue(SHIFT_MODE, false));
                 }
             }
         }
@@ -239,7 +208,15 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
             if (stack.is(this.asItem())) {
                 SlabType slabtype = state.getValue(TYPE);
                 if (slabtype != SlabType.DOUBLE) {
-                    if (state.getValue(CLICKED_FACE) == clickedFace) {
+                    Boolean isShiftMode = state.getValue(SHIFT_MODE);
+                    if (isShiftMode) {
+                        if (slabtype == SlabType.BOTTOM && clickedFace == Direction.UP) {
+                            cir.setReturnValue(true);
+                        } else if (slabtype == SlabType.TOP && clickedFace == Direction.DOWN) {
+                            cir.setReturnValue(true);
+                        }
+                    } else if (state.getValue(CLICKED_FACE) == clickedFace) {
+
                         cir.setReturnValue(true);
                     }
                 }
