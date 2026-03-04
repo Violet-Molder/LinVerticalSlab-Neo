@@ -1,6 +1,6 @@
 package com.linweiyun.vertical_slab;
 
-import net.minecraft.world.level.block.TorchBlock;
+import com.linweiyun.vertical_slab.attachments.AttachmentRegistration;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -15,24 +15,23 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
-import java.nio.file.Path;
 
 
-
-@Mod(Linweiyun.MOD_ID)
-public class Linweiyun
+@Mod(LinVerticalSlab.MOD_ID)
+public class LinVerticalSlab
 {
 
     public static final String MOD_ID = "vertical_slab";
     public static final String GAME_VERSION =  "1.21.1";
-    public static final String MOD_VERSION = "21.1.10";
+    public static final String PACKET_VERSION = "0.12";
     public static final String RESOURCE_PACK_NAME = "LVS-MOD-Pack" + "-" + GAME_VERSION;
+    public static final String VANILLA_PLACE_MODE_NAME = "vanilla_mode";
     private static final Logger LOGGER = LogUtils.getLogger();
-    public Linweiyun(IEventBus modEventBus, ModContainer modContainer) throws Exception {
+    public LinVerticalSlab(IEventBus modEventBus, ModContainer modContainer) throws Exception {
         modEventBus.addListener(this::commonSetup);
         NeoForge.EVENT_BUS.register(this);
         modEventBus.addListener(this::addCreative);
-
+        AttachmentRegistration.register(modEventBus);
 
 
     }

@@ -5,7 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.linweiyun.vertical_slab.Linweiyun;
+import com.linweiyun.vertical_slab.LinVerticalSlab;
 import com.linweiyun.vertical_slab.SlabBlockstate;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
@@ -21,7 +21,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.linweiyun.vertical_slab.Linweiyun.RESOURCE_PACK_NAME;
+import static com.linweiyun.vertical_slab.LinVerticalSlab.RESOURCE_PACK_NAME;
 
 public class ResourcePackGenerator {
     private static final Gson GSON = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
@@ -41,7 +41,7 @@ public class ResourcePackGenerator {
                     JsonObject metaData = JsonParser.parseReader(reader).getAsJsonObject();
                     if (metaData.has("version")) {
                         String existingVersion = metaData.get("version").getAsString();
-                        if (!Linweiyun.MOD_VERSION.equals(existingVersion)) {
+                        if (!LinVerticalSlab.PACKET_VERSION.equals(existingVersion)) {
                             needRegenerate = true;
                         }
                     } else {
@@ -69,13 +69,13 @@ public class ResourcePackGenerator {
                     "description": "竖半砖MOD资源包"
                   },
                   "version": "%s"
-                }""".formatted(Linweiyun.MOD_VERSION);
+                }""".formatted(LinVerticalSlab.PACKET_VERSION);
                 Files.writeString(packMetaPath, packMetaContent);
             }
             Path iconPath = resourcePackPath.resolve("pack.png");
             if (!Files.exists(iconPath)) {
                 ResourceManager resourceManager = Minecraft.getInstance().getResourceManager();
-                ResourceLocation iconLocation = ResourceLocation.fromNamespaceAndPath(Linweiyun.MOD_ID, "textures/icon/pack.png");
+                ResourceLocation iconLocation = ResourceLocation.fromNamespaceAndPath(LinVerticalSlab.MOD_ID, "textures/icon/pack.png");
 
                 Optional<Resource> resourceOptional = resourceManager.getResource(iconLocation);
                 if (resourceOptional.isPresent()) {
