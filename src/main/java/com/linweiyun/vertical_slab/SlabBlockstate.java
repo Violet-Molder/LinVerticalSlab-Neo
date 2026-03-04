@@ -17,19 +17,18 @@ public class SlabBlockstate {
         String modeName = VANILLA_PLACE_MODE_NAME;
         variants.put(modeName + "=true,type=bottom", new LinVariant(bottomModel, null, null));
         variants.put(modeName + "=true,type=top", new LinVariant(topModel, null, null));
-        variants.put(modeName + "=false,clicked_face=up,type=top", new LinVariant(bottomModel, null, null));
-        variants.put(modeName + "=false,clicked_face=east,type=top", new LinVariant(bottomModel, 90, 90));
-        variants.put(modeName + "=false,clicked_face=west,type=top", new LinVariant(bottomModel, 90, 270));
-        variants.put(modeName + "=false,clicked_face=south,type=top", new LinVariant(bottomModel, 90, 180));
-        variants.put(modeName + "=false,clicked_face=north,type=top", new LinVariant(bottomModel, 90, null));
-        variants.put(modeName + "=false,clicked_face=up,type=bottom", new LinVariant(bottomModel, null, null));
-        variants.put(modeName + "=false,clicked_face=down,type=bottom", new LinVariant(bottomModel, 90, null));
-        variants.put(modeName + "=false,clicked_face=east,type=bottom", new LinVariant(bottomModel, 90, 90));
-        variants.put(modeName + "=false,clicked_face=west,type=bottom", new LinVariant(bottomModel, 90, 270));
-        variants.put(modeName + "=false,clicked_face=south,type=bottom", new LinVariant(bottomModel, 90, 180));
-        variants.put(modeName + "=false,clicked_face=north,type=bottom", new LinVariant(bottomModel, 90, null));
         variants.put(modeName + "=false,type=double", new LinVariant(doubleModel, null, null));
         variants.put(modeName + "=true,type=double", new LinVariant(doubleModel, null, null));
+
+        variants.put(modeName + "=false,place_direction=east,type=top", new LinVariant(bottomModel, 90, 270));
+        variants.put(modeName + "=false,place_direction=west,type=top", new LinVariant(bottomModel, 90, 90));
+        variants.put(modeName + "=false,place_direction=south,type=top", new LinVariant(bottomModel, 90, null));
+        variants.put(modeName + "=false,place_direction=north,type=top", new LinVariant(bottomModel, 90, 180));
+
+        variants.put(modeName + "=false,place_direction=east,type=bottom", new LinVariant(bottomModel, 90, 270));
+        variants.put(modeName + "=false,place_direction=west,type=bottom", new LinVariant(bottomModel, 90, 90));
+        variants.put(modeName + "=false,place_direction=south,type=bottom", new LinVariant(bottomModel, 90, null));
+        variants.put(modeName + "=false,place_direction=north,type=bottom", new LinVariant(bottomModel, 90, 180));
 
     }
 

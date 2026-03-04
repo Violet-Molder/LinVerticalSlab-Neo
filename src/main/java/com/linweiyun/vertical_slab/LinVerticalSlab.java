@@ -23,7 +23,7 @@ public class LinVerticalSlab
 
     public static final String MOD_ID = "vertical_slab";
     public static final String GAME_VERSION =  "1.21.1";
-    public static final String PACKET_VERSION = "0.12";
+    public static final String PACKET_VERSION = "21.1.13";
     public static final String RESOURCE_PACK_NAME = "LVS-MOD-Pack" + "-" + GAME_VERSION;
     public static final String VANILLA_PLACE_MODE_NAME = "vanilla_mode";
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -49,6 +49,7 @@ public class LinVerticalSlab
     public void onServerStarting(ServerStartingEvent event)
     {
     }
+
     @EventBusSubscriber(modid = MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static class ClientModEvents
     {
