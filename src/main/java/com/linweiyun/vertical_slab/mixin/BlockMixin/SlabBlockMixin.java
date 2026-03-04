@@ -178,6 +178,7 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
             PlayerPlacementModeAttachment attachment = player.getData(AttachmentRegistration.PLACEMENT_MODE_ATTACHMENT);
             if (attachment.isVanillaPlacementMode()) {
                 cir.setReturnValue(originalState.setValue(VANILLA_PLACE_MODE, true).setValue(WATERLOGGED, waterlogged));
+                return;
 
             } else if (clickedBlockState.getBlock() instanceof SlabBlock) {//如果被点击的是同一个半砖
                 Direction placedDirection = clickedBlockState.getValue(PLACE_DIRECTION);
