@@ -264,12 +264,6 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
             }
 
         }
-
-
-
-
-
-
     }
 
     @Inject(method = "getShape", at = @At("HEAD"), cancellable = true)
