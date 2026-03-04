@@ -9,8 +9,8 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
-@Mod(value = Linweiyun.MOD_ID, dist = Dist.CLIENT)
-@EventBusSubscriber(modid = Linweiyun.MOD_ID, value = Dist.CLIENT)
+@Mod(value = LinVerticalSlab.MOD_ID, dist = Dist.CLIENT)
+@EventBusSubscriber(modid = LinVerticalSlab.MOD_ID, value = Dist.CLIENT)
 public class LVSModClient {
     public LVSModClient(ModContainer container) {
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
