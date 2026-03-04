@@ -203,8 +203,10 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
                                         .setValue(PLACE_DIRECTION, placedDirection)
                                         .setValue(WATERLOGGED, waterlogged));
                             }
-                        } else {
-                            BlockPos clickPos = context.getClickedPos();
+                        }
+                    }
+
+                                        BlockPos clickPos = context.getClickedPos();
                             Block clickBlock = context.getLevel().getBlockState(clickPos).getBlock();
                             if (clickBlock == this) {
                                 // 合并台阶时
@@ -212,8 +214,6 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
                             } else {
                                 cir.setReturnValue(originalState.setValue(PLACE_DIRECTION, player.getDirection()).setValue(WATERLOGGED, waterlogged).setValue(VANILLA_PLACE_MODE, false));
                             }
-                        }
-                    }
         }
     }
 
