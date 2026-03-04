@@ -182,7 +182,7 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
             } else if (clickedBlockState.getBlock() instanceof SlabBlock) {//如果被点击的是同一个半砖
                 Direction placedDirection = clickedBlockState.getValue(PLACE_DIRECTION);
                 Direction clickedDirection = context.getClickedFace();
-                if (playerDirection.getOpposite() == placedDirection) {
+                if (playerDirection.getOpposite() == placedDirection && clickedBlockState.getValue(TYPE) != SlabType.DOUBLE && clickedDirection.getAxis() == Direction.Axis.Y) {
                     cir.setReturnValue(originalState
                             .setValue(VANILLA_PLACE_MODE, false)
                             .setValue(PLACE_DIRECTION, placedDirection)
@@ -203,16 +203,15 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
                                 .setValue(PLACE_DIRECTION, placedDirection)
                                 .setValue(WATERLOGGED, waterlogged));
                     }
-                } else {
-                    BlockPos clickPos = context.getClickedPos();
-                    Block clickBlock = context.getLevel().getBlockState(clickPos).getBlock();
-                    if (clickBlock == this) {
-                        // 合并台阶时
-                        cir.setReturnValue(originalState.setValue(TYPE, SlabType.DOUBLE).setValue(WATERLOGGED, waterlogged));
-                    } else {
-                        cir.setReturnValue(originalState.setValue(PLACE_DIRECTION, player.getDirection()).setValue(WATERLOGGED, waterlogged).setValue(VANILLA_PLACE_MODE, false));
-                    }
                 }
+            }
+            BlockPos clickPos = context.getClickedPos();
+            Block clickBlock = context.getLevel().getBlockState(clickPos).getBlock();
+            if (clickBlock == this) {
+                // 合并台阶时
+                cir.setReturnValue(originalState.setValue(TYPE, SlabType.DOUBLE).setValue(WATERLOGGED, waterlogged));
+            } else {
+                cir.setReturnValue(originalState.setValue(PLACE_DIRECTION, player.getDirection()).setValue(WATERLOGGED, waterlogged).setValue(VANILLA_PLACE_MODE, false));
             }
         }
     }
