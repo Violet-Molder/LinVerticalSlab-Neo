@@ -49,11 +49,9 @@ public class SlabDetectionEvent {
         for (Block block : BuiltInRegistries.BLOCK) {
             if (block instanceof SlabBlock) {
                 ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(block);
-                System.out.println("Processing slab: " + blockId);
 
                 // 如果配置中已有记录，跳过检测
                 if (SlabConfigManager.hasModels(blockId)) {
-                    System.out.println("  Already in config, skipping");
                     skippedCount++;
                     continue;
                 }

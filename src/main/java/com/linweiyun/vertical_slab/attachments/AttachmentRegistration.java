@@ -17,7 +17,7 @@ public class AttachmentRegistration {
     public static final DeferredRegister<AttachmentType<?>> ATTACHMENTS =
             DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, LinVerticalSlab.MOD_ID);
 
-    public static final Supplier<AttachmentType<Boolean>> PLAYER_BOOLEAN =
+    public static final Supplier<AttachmentType<Boolean>> PLACEMENT_MODE_ATTACHMENT =
             ATTACHMENTS.register("player_boolean", // 唯一名称
                     () -> AttachmentType.builder(() -> false) // 默认值 false
                             // 官方要求：序列化必须用 MapCodec → .fieldOf("xxx")

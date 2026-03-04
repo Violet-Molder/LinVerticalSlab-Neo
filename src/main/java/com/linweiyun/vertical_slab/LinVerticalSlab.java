@@ -30,7 +30,6 @@ public class LinVerticalSlab
         NeoForge.EVENT_BUS.register(this);
 
         AttachmentRegistration.register(modEventBus);
-
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent event)

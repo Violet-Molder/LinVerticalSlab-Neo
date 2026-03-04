@@ -1,14 +1,13 @@
 package com.linweiyun.vertical_slab.mixin.BlockMixin;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.linweiyun.vertical_slab.attachments.AttachmentRegistration;
 import com.linweiyun.vertical_slab.events.SlabConfigManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -37,6 +36,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import static com.linweiyun.vertical_slab.LinVerticalSlab.VANILLA_PLACE_MODE_NAME;
 
 
 @Mixin(SlabBlock.class)
@@ -59,9 +59,9 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
     @Final
     public static EnumProperty<SlabType> TYPE;
     @Unique
-    private static final EnumProperty<Direction> CLICKED_FACE = EnumProperty.create("clicked_face", Direction.class);
+    private static final EnumProperty<Direction> PLACE_DIRECTION = EnumProperty.create("place_direction", Direction.class);
     @Unique
-    private static final BooleanProperty SHIFT_MODE = BooleanProperty.create("shift_mode");
+    private static final BooleanProperty VANILLA_PLACE_MODE = BooleanProperty.create(VANILLA_PLACE_MODE_NAME);
     @Unique
     private static final BooleanProperty HAS_MODELS = BooleanProperty.create("has_models");
 
@@ -69,16 +69,16 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
     @Inject(method = "createBlockStateDefinition", at = @At("TAIL"))
     private void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder, CallbackInfo ci) {
 
-        builder.add(CLICKED_FACE);
-        builder.add(SHIFT_MODE);
+        builder.add(PLACE_DIRECTION);
+        builder.add(VANILLA_PLACE_MODE);
         builder.add(HAS_MODELS);
     }
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void injectInit(Properties properties, CallbackInfo ci) {
         this.registerDefaultState(this.defaultBlockState()
-                .setValue(CLICKED_FACE, Direction.DOWN)
-                .setValue(SHIFT_MODE, true)
+                .setValue(PLACE_DIRECTION, Direction.DOWN)
+                .setValue(VANILLA_PLACE_MODE, true)
                 .setValue(HAS_MODELS, false)
         );
     }
@@ -107,14 +107,14 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
                     // 检查邻居是否为台阶方块
                     if (neighborBlock instanceof SlabBlock) {
                         // 检查是否为竖半砖且朝向一致
-                        if (nState.hasProperty(SHIFT_MODE) && nState.hasProperty(CLICKED_FACE)) {
-                            boolean isShiftMode = nState.getValue(SHIFT_MODE);
-                            Direction clickedFace = nState.getValue(CLICKED_FACE);
+                        if (nState.hasProperty(VANILLA_PLACE_MODE) && nState.hasProperty(PLACE_DIRECTION)) {
+                            boolean isShiftMode = nState.getValue(VANILLA_PLACE_MODE);
+                            Direction clickedFace = nState.getValue(PLACE_DIRECTION);
 
                             // 检查当前方块是否也为竖半砖且朝向一致
-                            if (state.hasProperty(SHIFT_MODE) && state.hasProperty(CLICKED_FACE)) {
-                                if (state.getValue(SHIFT_MODE) == isShiftMode &&
-                                        state.getValue(CLICKED_FACE) == clickedFace) {
+                            if (state.hasProperty(VANILLA_PLACE_MODE) && state.hasProperty(PLACE_DIRECTION)) {
+                                if (state.getValue(VANILLA_PLACE_MODE) == isShiftMode &&
+                                        state.getValue(PLACE_DIRECTION) == clickedFace) {
                                     // 设置为含水状态
                                     cir.setReturnValue(state.setValue(WATERLOGGED, true));
                                     return;
@@ -172,23 +172,49 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
             // 检查放置位置是否有水
             FluidState fluidState = context.getLevel().getFluidState(context.getClickedPos());
             boolean waterlogged = fluidState.getType() == Fluids.WATER;
+            Player player = context.getPlayer();
+            BlockPos clickedPos = context.getClickedPos().relative(context.getClickedFace().getOpposite());
+            BlockState clickedBlockState = context.getLevel().getBlockState(clickedPos);
+            Direction playerDirection = player.getDirection();
+            if (player.getData(AttachmentRegistration.PLACEMENT_MODE_ATTACHMENT.get())) {
+                cir.setReturnValue(originalState.setValue(VANILLA_PLACE_MODE, true).setValue(WATERLOGGED, waterlogged));
 
-            if (context.getPlayer().isShiftKeyDown()) {
-                // 其他情况使用原版逻辑
-                cir.setReturnValue(originalState.setValue(SHIFT_MODE, true).setValue(WATERLOGGED, waterlogged));
+            } else if (clickedBlockState.getBlock() instanceof SlabBlock) {//如果被点击的是同一个半砖
+                        Direction placedDirection = clickedBlockState.getValue(PLACE_DIRECTION);
+                        Direction clickedDirection = context.getClickedFace();
+                        if (playerDirection.getOpposite() == placedDirection) {
+                            cir.setReturnValue(originalState
+                                    .setValue(VANILLA_PLACE_MODE, false)
+                                    .setValue(PLACE_DIRECTION, placedDirection)
+                                    .setValue(WATERLOGGED, waterlogged));
+                            return;
+                        }
+                        if (player.isShiftKeyDown()) {
+                            boolean isSmallFace = false;
+                            if (placedDirection.getAxis() == Direction.Axis.X) {
+                                isSmallFace = (clickedDirection == Direction.NORTH || clickedDirection == Direction.SOUTH || clickedDirection == Direction.UP || clickedDirection == Direction.DOWN);
+                            } else if (placedDirection.getAxis() == Direction.Axis.Z) {
+                                isSmallFace = (clickedDirection == Direction.EAST || clickedDirection == Direction.WEST || clickedDirection == Direction.UP || clickedDirection == Direction.DOWN);
+                            }
 
-            } else {
-                BlockPos clickedPos = context.getClickedPos();
-                Block clickedBlock = context.getLevel().getBlockState(clickedPos).getBlock();
-                if (clickedBlock == this) {
-                    // 合并台阶时
-                    cir.setReturnValue(originalState.setValue(TYPE, SlabType.DOUBLE).setValue(WATERLOGGED, waterlogged));
-                } else {
-                    cir.setReturnValue(originalState.setValue(CLICKED_FACE, context.getClickedFace()).setValue(WATERLOGGED, waterlogged).setValue(SHIFT_MODE, false));
-                }
-            }
+                            if (isSmallFace) {
+                                cir.setReturnValue(originalState
+                                        .setValue(VANILLA_PLACE_MODE, false)
+                                        .setValue(PLACE_DIRECTION, placedDirection)
+                                        .setValue(WATERLOGGED, waterlogged));
+                            }
+                        } else {
+                            BlockPos clickPos = context.getClickedPos();
+                            Block clickBlock = context.getLevel().getBlockState(clickPos).getBlock();
+                            if (clickBlock == this) {
+                                // 合并台阶时
+                                cir.setReturnValue(originalState.setValue(TYPE, SlabType.DOUBLE).setValue(WATERLOGGED, waterlogged));
+                            } else {
+                                cir.setReturnValue(originalState.setValue(PLACE_DIRECTION, player.getDirection()).setValue(WATERLOGGED, waterlogged).setValue(VANILLA_PLACE_MODE, false));
+                            }
+                        }
+                    }
         }
-        // 如果 shouldModifyCollision 返回 false，则不修改原版行为
     }
 
     @Inject(method = "canBeReplaced", at = @At("HEAD"), cancellable = true)
@@ -197,40 +223,49 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
         if (!shouldModifyCollision(state)) {
             return;
         }
+        boolean vanillaMode = state.getValue(VANILLA_PLACE_MODE);
+        if (!context.getPlayer().getData(AttachmentRegistration.PLACEMENT_MODE_ATTACHMENT.get())){
+            cir.cancel();
+            // 获取玩家点击的面和潜行状态
+            Direction clickedFace = context.getClickedFace();
+            ItemStack stack = context.getItemInHand();
 
-        cir.cancel();
-        // 获取玩家点击的面和潜行状态
-        Direction clickedFace = context.getClickedFace();
-        ItemStack stack = context.getItemInHand();
+            // 如果手持同种台阶，并且当前方块不是双台阶，则可允许替换（用于合并）
+            if (context.replacingClickedOnBlock()){
+                if (stack.is(this.asItem())) {
+                    SlabType slabtype = state.getValue(TYPE);
+                    if (slabtype != SlabType.DOUBLE) {
+                        Boolean isShiftMode = state.getValue(VANILLA_PLACE_MODE);
+                        if (isShiftMode) {
+                            if (slabtype == SlabType.BOTTOM && clickedFace == Direction.UP) {
+                                cir.setReturnValue(true);
+                            } else if (slabtype == SlabType.TOP && clickedFace == Direction.DOWN) {
+                                cir.setReturnValue(true);
+                            }
+                        } else if (state.getValue(PLACE_DIRECTION) == clickedFace.getOpposite()) {
 
-        // 如果手持同种台阶，并且当前方块不是双台阶，则可允许替换（用于合并）
-        if (context.replacingClickedOnBlock()){
-            if (stack.is(this.asItem())) {
-                SlabType slabtype = state.getValue(TYPE);
-                if (slabtype != SlabType.DOUBLE) {
-                    Boolean isShiftMode = state.getValue(SHIFT_MODE);
-                    if (isShiftMode) {
-                        if (slabtype == SlabType.BOTTOM && clickedFace == Direction.UP) {
-                            cir.setReturnValue(true);
-                        } else if (slabtype == SlabType.TOP && clickedFace == Direction.DOWN) {
                             cir.setReturnValue(true);
                         }
-                    } else if (state.getValue(CLICKED_FACE) == clickedFace) {
-
+                    }
+                }
+            } else {
+                BlockPos clickedPos = context.getClickedPos();
+                Block clickedBlock = context.getLevel().getBlockState(clickedPos).getBlock();
+                if (stack.is(clickedBlock.asItem())) {
+                    SlabType slabtype = state.getValue(TYPE);
+                    if (slabtype != SlabType.DOUBLE) {
                         cir.setReturnValue(true);
                     }
                 }
             }
         } else {
-            BlockPos clickedPos = context.getClickedPos();
-            Block clickedBlock = context.getLevel().getBlockState(clickedPos).getBlock();
-            if (stack.is(clickedBlock.asItem())) {
-                SlabType slabtype = state.getValue(TYPE);
-                if (slabtype != SlabType.DOUBLE) {
-                    cir.setReturnValue(true);
-                }
+            if (!vanillaMode) {
+                cir.setReturnValue(false);
             }
+
         }
+
+
 
 
 
@@ -240,10 +275,8 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
     @Inject(method = "getShape", at = @At("HEAD"), cancellable = true)
     private void getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context, CallbackInfoReturnable<VoxelShape> cir) {
         SlabType slabType = state.getValue(TYPE);
-        Direction clickedFace = state.getValue(CLICKED_FACE);
-        if (state.getValue(SHIFT_MODE) || !state.getValue(HAS_MODELS)) {
-            cir.setReturnValue(getVoxelShapeForSlab(slabType));
-        } else {
+        Direction clickedFace = state.getValue(PLACE_DIRECTION);
+        if (!(state.getValue(VANILLA_PLACE_MODE) || !state.getValue(HAS_MODELS))) {
             VoxelShape shape = getVoxelShapeForSlab(slabType, clickedFace);
             if (shape != null) {
                 cir.setReturnValue(shape);
@@ -251,30 +284,21 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
         }
     }
 
-    @Unique
-    private VoxelShape getVoxelShapeForSlab(SlabType slabType) {
-        return switch (slabType) {
-            case DOUBLE -> Shapes.block();
-            case TOP -> Block.box(0.0, 8.0, 0.0, 16.0, 16.0, 16.0);
-            case BOTTOM -> Block.box(0.0, 0.0, 0.0, 16.0, 8.0, 16.0);
-        };
-    }
+
 
     // 根据 slabType 和 clickedFace 计算正确的碰撞体积
     @Unique
     private VoxelShape getVoxelShapeForSlab(SlabType slabType, Direction clickedFace) {
-
             switch (slabType) {
                 case DOUBLE:
                     return Shapes.block();
                 case TOP, BOTTOM:
                     return switch (clickedFace) {
-                        case UP -> Block.box(0.0, 0.0, 0.0, 16.0, 8.0, 16.0);
-                        case DOWN -> Block.box(0.0, 8.0, 0.0, 16.0, 16.0, 16.0);
-                        case NORTH -> Block.box(0.0, 0.0, 8.0, 16.0, 16.0, 16.0);
-                        case SOUTH -> Block.box(0.0, 0.0, 0.0, 16.0, 16.0, 8.0);
-                        case WEST -> Block.box(8.0, 0.0, 0.0, 16.0, 16.0, 16.0);
-                        case EAST -> Block.box(0.0, 0.0, 0.0, 8.0, 16.0, 16.0);
+                        case NORTH -> Block.box(0.0, 0.0, 0.0, 16.0, 16.0, 8.0);
+                        case SOUTH -> Block.box(0.0, 0.0, 8.0, 16.0, 16.0, 16.0);
+                        case WEST -> Block.box(0.0, 0.0, 0.0, 8.0, 16.0, 16.0);
+                        case EAST -> Block.box(8.0, 0.0, 0.0, 16.0, 16.0, 16.0);
+                        default -> Block.box(0.0, 8.0, 0.0, 16.0, 16.0, 16.0);
                     };
             }
 
