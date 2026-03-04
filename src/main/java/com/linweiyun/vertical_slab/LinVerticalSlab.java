@@ -21,7 +21,7 @@ public class LinVerticalSlab
 
     public static final String MOD_ID = "vertical_slab";
     public static final String GAME_VERSION =  "1.21.9";
-    public static final String MOD_VERSION = "21.9.13";
+    public static final String MOD_VERSION = "21.9.14";
     public static final String RESOURCE_PACK_NAME = "LVS-MOD-Pack" + "-" + GAME_VERSION;
     public static final String VANILLA_PLACE_MODE_NAME = "vanilla_mode";
     private static final Logger LOGGER = LogUtils.getLogger();
