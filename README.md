@@ -1,25 +1,35 @@
+# Lin's Vertical Slab (竖半砖)
 
-Installation information
-=======
+## 中文说明
 
-This template repository can be directly cloned to get you started with a new
-mod. Simply create a new repository cloned from this one, by following the
-instructions provided by [GitHub](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
+一个为原版台阶添加竖向放置功能的 Mod。通过 Mixin 修改 `SlabBlock`，无需添加新方块即可实现竖半砖。按 Shift 可切换回原版横向放置模式。
 
-Once you have your clone, simply open the repository in the IDE of your choice. The usual recommendation for an IDE is either IntelliJ IDEA or Eclipse.
+### 使用说明
 
-If at any point you are missing libraries in your IDE, or you've run into problems you can
-run `gradlew --refresh-dependencies` to refresh the local cache. `gradlew clean` to reset everything 
-{this does not affect your code} and then start the process again.
+**首次进入游戏需启用资源包**：进入存档后在"选项→资源包"中启用 `LVS-MOD-Pack-1.21.1`。若模型显示异常，按 F3+T 重载资源。
 
-Mapping Names:
-============
-By default, the MDK is configured to use the official mapping names from Mojang for methods and fields 
-in the Minecraft codebase. These names are covered by a specific license. All modders should be aware of this
-license. For the latest license text, refer to the mapping file itself, or the reference copy here:
-https://github.com/NeoForged/NeoForm/blob/main/Mojang.md
+### 注意事项
 
-Additional Resources: 
-==========
-Community Documentation: https://docs.neoforged.net/  
-NeoForged Discord: https://discord.neoforged.net/
+- ✅ 兼容其他 Mod 的台阶（需继承 `SlabBlock`）
+- ⚠️ 删除 Mod 前请备份地图
+- 📧 问题反馈请加 QQ 群：892764506
+
+---
+
+## English Description
+
+A mod that adds vertical placement for vanilla slabs by modifying `SlabBlock` via Mixin. No new blocks added. Hold Shift to place slabs horizontally (vanilla behavior).
+
+### Usage
+
+**Enable resource pack on first join**: After entering your world, enable the `LVS-MOD-Pack-1.21.1` resource pack in Options → Resource Packs. Press F3+T if models display incorrectly.
+
+### Notes
+
+- ✅ Compatible with other mods' slabs (must extend `SlabBlock`)
+- ⚠️ Backup your world before removing this mod
+- 📧 For issues, join QQ group: 892764506
+
+---
+
+**Minecraft**: 1.21.1 | **Loader**: NeoForge | **Author**: Linweiyun | **License**: CC BY-NC 4.0
