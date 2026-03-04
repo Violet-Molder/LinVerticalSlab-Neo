@@ -202,6 +202,7 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
                                 .setValue(VANILLA_PLACE_MODE, false)
                                 .setValue(PLACE_DIRECTION, placedDirection)
                                 .setValue(WATERLOGGED, waterlogged));
+                        return;
                     }
                 }
             }
