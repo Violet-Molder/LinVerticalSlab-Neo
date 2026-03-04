@@ -2,7 +2,6 @@ package com.linweiyun.vertical_slab.net.packet;
 
 import com.linweiyun.vertical_slab.LinVerticalSlab;
 import com.linweiyun.vertical_slab.attachments.AttachmentRegistration;
-import com.linweiyun.vertical_slab.attachments.attachment.PlayerPlacementModeAttachment;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;

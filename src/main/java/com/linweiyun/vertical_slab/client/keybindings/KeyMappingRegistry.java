@@ -2,7 +2,6 @@ package com.linweiyun.vertical_slab.client.keybindings;
 
 import com.linweiyun.vertical_slab.LinVerticalSlab;
 import com.linweiyun.vertical_slab.attachments.AttachmentRegistration;
-import com.linweiyun.vertical_slab.attachments.attachment.PlayerPlacementModeAttachment;
 import com.linweiyun.vertical_slab.net.packet.PlacementModeSyncPacket;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
@@ -16,7 +15,6 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 @EventBusSubscriber
 public class KeyMappingRegistry {

@@ -1,12 +1,10 @@
 package com.linweiyun.vertical_slab.attachments;
 
 import com.linweiyun.vertical_slab.LinVerticalSlab;
-import com.linweiyun.vertical_slab.attachments.attachment.PlayerPlacementModeAttachment;
 import com.mojang.serialization.Codec;
 import net.minecraft.network.codec.StreamCodec;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.attachment.AttachmentType;
-import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
