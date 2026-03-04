@@ -6,7 +6,7 @@
 
 ### 使用说明
 
-**首次进入游戏需启用资源包**：进入存档后在"选项→资源包"中启用 `LVS-MOD-Pack-1.21.1`。若模型显示异常，按 F3+T 重载资源。
+**首次进入游戏需启用资源包**：进入存档后在"选项→资源包"中启用 `LVS-MOD-Pack-1.21.9`。若模型显示异常，按 F3+T 重载资源。
 
 ### 注意事项
 
@@ -22,7 +22,7 @@ A mod that adds vertical placement for vanilla slabs by modifying `SlabBlock` vi
 
 ### Usage
 
-**Enable resource pack on first join**: After entering your world, enable the `LVS-MOD-Pack-1.21.1` resource pack in Options → Resource Packs. Press F3+T if models display incorrectly.
+**Enable resource pack on first join**: After entering your world, enable the `LVS-MOD-Pack-1.21.9` resource pack in Options → Resource Packs. Press F3+T if models display incorrectly.
 
 ### Notes
 
@@ -32,4 +32,4 @@ A mod that adds vertical placement for vanilla slabs by modifying `SlabBlock` vi
 
 ---
 
-**Minecraft**: 1.21.1 | **Loader**: NeoForge | **Author**: Linweiyun | **License**: CC BY-NC 4.0
+**Minecraft**: 1.21.9 | **Loader**: NeoForge | **Author**: Linweiyun | **License**: CC BY-NC 4.0
