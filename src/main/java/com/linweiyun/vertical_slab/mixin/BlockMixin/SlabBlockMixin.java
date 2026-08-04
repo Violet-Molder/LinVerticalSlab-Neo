@@ -76,11 +76,16 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void injectInit(Properties properties, CallbackInfo ci) {
-        this.registerDefaultState(this.defaultBlockState()
-                .setValue(PLACE_DIRECTION, Direction.DOWN)
-                .setValue(VANILLA_PLACE_MODE, true)
-                .setValue(HAS_MODELS, false)
-        );
+        BlockState defaultState = this.defaultBlockState();
+        if (defaultState.hasProperty(PLACE_DIRECTION)
+                && defaultState.hasProperty(VANILLA_PLACE_MODE)
+                && defaultState.hasProperty(HAS_MODELS)) {
+            this.registerDefaultState(defaultState
+                    .setValue(PLACE_DIRECTION, Direction.DOWN)
+                    .setValue(VANILLA_PLACE_MODE, true)
+                    .setValue(HAS_MODELS, false)
+            );
+        }
     }
 
     // 处理方块更新时的含水逻辑
@@ -163,6 +168,10 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
 
     @Inject(method = "getStateForPlacement", at = @At("RETURN"), cancellable = true)
     private void getStateForPlacement(BlockPlaceContext context, CallbackInfoReturnable<BlockState> cir) {
+        BlockState returnState = cir.getReturnValue();
+        if (!returnState.hasProperty(HAS_MODELS)) {
+            return;
+        }
         ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey((SlabBlock)(Object)this);
         boolean hasModels = SlabConfigManager.hasModels(blockId);
         BlockState originalState = cir.getReturnValue().setValue(HAS_MODELS, hasModels);
@@ -181,6 +190,7 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
                 return;
 
             } else if (clickedBlockState.getBlock() instanceof SlabBlock) {//如果被点击的是同一个半砖
+
                 Direction placedDirection = clickedBlockState.getValue(PLACE_DIRECTION);
                 Direction clickedDirection = context.getClickedFace();
                 if (playerDirection.getOpposite() == placedDirection && clickedBlockState.getValue(TYPE) != SlabType.DOUBLE && clickedDirection.getAxis() == Direction.Axis.Y) {
@@ -213,7 +223,12 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
                 // 合并台阶时
                 cir.setReturnValue(originalState.setValue(TYPE, SlabType.DOUBLE).setValue(WATERLOGGED, waterlogged));
             } else {
-                cir.setReturnValue(originalState.setValue(PLACE_DIRECTION, player.getDirection()).setValue(WATERLOGGED, waterlogged).setValue(VANILLA_PLACE_MODE, false));
+                Direction clickedFace = context.getClickedFace();
+                if (clickedFace.getAxis() == Direction.Axis.Y) {
+                    cir.setReturnValue(originalState.setValue(PLACE_DIRECTION, player.getDirection()).setValue(WATERLOGGED, waterlogged).setValue(VANILLA_PLACE_MODE, false));
+                } else {
+                    cir.setReturnValue(originalState.setValue(PLACE_DIRECTION, clickedFace.getOpposite()).setValue(WATERLOGGED, waterlogged).setValue(VANILLA_PLACE_MODE, false));
+                }
             }
         }
     }
@@ -269,6 +284,9 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
 
     @Inject(method = "getShape", at = @At("HEAD"), cancellable = true)
     private void getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context, CallbackInfoReturnable<VoxelShape> cir) {
+        if (!state.hasProperty(PLACE_DIRECTION) || !state.hasProperty(VANILLA_PLACE_MODE) || !state.hasProperty(HAS_MODELS)) {
+            return;
+        }
         SlabType slabType = state.getValue(TYPE);
         Direction clickedFace = state.getValue(PLACE_DIRECTION);
         if (!(state.getValue(VANILLA_PLACE_MODE) || !state.getValue(HAS_MODELS))) {
