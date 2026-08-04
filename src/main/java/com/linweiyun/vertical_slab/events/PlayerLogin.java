@@ -12,11 +12,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
 @EventBusSubscriber(bus = EventBusSubscriber.Bus.GAME)
 public class PlayerLogin {
     @SubscribeEvent
-    public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
-        if (!event.getEntity().level().isClientSide){
-            PlayerPlacementModeAttachment attachment = event.getEntity().getData(AttachmentRegistration.PLACEMENT_MODE_ATTACHMENT);
-            PacketDistributor.sendToPlayer((ServerPlayer) event.getEntity(), new PlacementModeSyncPacket(attachment.isVanillaPlacementMode()));
-        }
-
+    public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
+        boolean mode = event.getEntity().getData(AttachmentRegistration.PLACEMENT_MODE_ATTACHMENT).isVanillaPlacementMode();
+        System.out.println(mode);
+        PacketDistributor.sendToPlayer((ServerPlayer) event.getEntity(), new PlacementModeSyncPacket(mode));
     }
 }

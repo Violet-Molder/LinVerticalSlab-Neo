@@ -88,83 +88,7 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
         }
     }
 
-    // 处理方块更新时的含水逻辑
-    @Inject(method = "updateShape", at = @At("HEAD"), cancellable = true)
-    private void updateShape(BlockState state, Direction facing, BlockState facingState, LevelAccessor level, BlockPos currentPos, BlockPos facingPos, CallbackInfoReturnable<BlockState> cir) {
-        // 仅在 shouldModifyCollision 为 true 时执行
-        if (!shouldModifyCollision(state)) {
-            return;
-        }
-        if (state.getValue(WATERLOGGED)) {
-            level.scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
-        }
 
-        // 检查周围是否有水，且相邻方块是竖半砖且朝向一致
-        if (!state.getValue(WATERLOGGED)) {
-            for (Direction direction : Direction.values()) {
-                BlockPos nPos = currentPos.relative(direction);
-                BlockState nState = level.getBlockState(nPos);
-
-                // 检查邻居是否为含水方块
-                if (level.getFluidState(nPos).getType() == Fluids.WATER) {
-                    Block neighborBlock = nState.getBlock();
-                    // 检查邻居是否为台阶方块
-                    if (neighborBlock instanceof SlabBlock) {
-                        // 检查是否为竖半砖且朝向一致
-                        if (nState.hasProperty(VANILLA_PLACE_MODE) && nState.hasProperty(PLACE_DIRECTION)) {
-                            boolean isShiftMode = nState.getValue(VANILLA_PLACE_MODE);
-                            Direction clickedFace = nState.getValue(PLACE_DIRECTION);
-                            // 检查当前方块是否也为竖半砖且朝向一致
-                            if (state.hasProperty(VANILLA_PLACE_MODE) && state.hasProperty(PLACE_DIRECTION)) {
-                                if (state.getValue(VANILLA_PLACE_MODE) == isShiftMode &&
-                                        state.getValue(PLACE_DIRECTION) == clickedFace) {
-                                    // 设置为含水状态
-                                    cir.setReturnValue(state.setValue(WATERLOGGED, true));
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // 调用父类方法
-        cir.setReturnValue(super.updateShape(state, facing, facingState, level, currentPos, facingPos));
-    }
-
-
-    // 获取流体状态
-    @Inject(method = "getFluidState", at = @At("HEAD"), cancellable = true)
-    private void getFluidState(BlockState state, CallbackInfoReturnable<FluidState> cir) {
-        // 仅在 shouldModifyCollision 为 true 时执行
-        if (!shouldModifyCollision(state)) {
-            return;
-        }
-
-        if (state.getValue(WATERLOGGED)) {
-            cir.setReturnValue(Fluids.WATER.getSource(false));
-        } else {
-            cir.setReturnValue(super.getFluidState(state));
-        }
-    }
-
-    // 处理放置液体
-    @Inject(method = "placeLiquid", at = @At("HEAD"), cancellable = true)
-    private void placeLiquid(LevelAccessor level, BlockPos pos, BlockState state, FluidState fluidState, CallbackInfoReturnable<Boolean> cir) {
-        // 仅在 shouldModifyCollision 为 true 时执行
-        if (!shouldModifyCollision(state)) {
-            return;
-        }
-
-        if (fluidState.getType() == Fluids.WATER) {
-            if (!level.isClientSide()) {
-                level.setBlock(pos, state.setValue(WATERLOGGED, true), 3);
-                level.scheduleTick(pos, fluidState.getType(), fluidState.getType().getTickDelay(level));
-            }
-            cir.setReturnValue(true);
-        }
-    }
 
     @Inject(method = "getStateForPlacement", at = @At("RETURN"), cancellable = true)
     private void getStateForPlacement(BlockPlaceContext context, CallbackInfoReturnable<BlockState> cir) {
@@ -177,16 +101,13 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
         BlockState originalState = cir.getReturnValue().setValue(HAS_MODELS, hasModels);
         // 只有当将要放置的方块具有指定模型时才执行自定义逻辑
         if (originalState != null && shouldModifyCollision(originalState)) {
-            // 检查放置位置是否有水
-            FluidState fluidState = context.getLevel().getFluidState(context.getClickedPos());
-            boolean waterlogged = fluidState.getType() == Fluids.WATER;
             Player player = context.getPlayer();
             BlockPos clickedPos = context.getClickedPos().relative(context.getClickedFace().getOpposite());
             BlockState clickedBlockState = context.getLevel().getBlockState(clickedPos);
             Direction playerDirection = player.getDirection();
             PlayerPlacementModeAttachment attachment = player.getData(AttachmentRegistration.PLACEMENT_MODE_ATTACHMENT);
             if (attachment.isVanillaPlacementMode()) {
-                cir.setReturnValue(originalState.setValue(VANILLA_PLACE_MODE, true).setValue(WATERLOGGED, waterlogged));
+                cir.setReturnValue(originalState.setValue(VANILLA_PLACE_MODE, true));
                 return;
 
             } else if (clickedBlockState.getBlock() instanceof SlabBlock) {//如果被点击的是同一个半砖
@@ -196,8 +117,7 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
                 if (playerDirection.getOpposite() == placedDirection && clickedBlockState.getValue(TYPE) != SlabType.DOUBLE && clickedDirection.getAxis() == Direction.Axis.Y) {
                     cir.setReturnValue(originalState
                             .setValue(VANILLA_PLACE_MODE, false)
-                            .setValue(PLACE_DIRECTION, placedDirection)
-                            .setValue(WATERLOGGED, waterlogged));
+                            .setValue(PLACE_DIRECTION, placedDirection));
                     return;
                 }
                 if (player.isShiftKeyDown()) {
@@ -211,8 +131,7 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
                     if (isSmallFace) {
                         cir.setReturnValue(originalState
                                 .setValue(VANILLA_PLACE_MODE, false)
-                                .setValue(PLACE_DIRECTION, placedDirection)
-                                .setValue(WATERLOGGED, waterlogged));
+                                .setValue(PLACE_DIRECTION, placedDirection));
                         return;
                     }
                 }
@@ -221,13 +140,13 @@ public abstract class SlabBlockMixin extends Block implements SimpleWaterloggedB
             Block clickBlock = context.getLevel().getBlockState(clickPos).getBlock();
             if (clickBlock == this) {
                 // 合并台阶时
-                cir.setReturnValue(originalState.setValue(TYPE, SlabType.DOUBLE).setValue(WATERLOGGED, waterlogged));
+                cir.setReturnValue(originalState.setValue(TYPE, SlabType.DOUBLE));
             } else {
                 Direction clickedFace = context.getClickedFace();
                 if (clickedFace.getAxis() == Direction.Axis.Y) {
-                    cir.setReturnValue(originalState.setValue(PLACE_DIRECTION, player.getDirection()).setValue(WATERLOGGED, waterlogged).setValue(VANILLA_PLACE_MODE, false));
+                    cir.setReturnValue(originalState.setValue(PLACE_DIRECTION, player.getDirection()).setValue(VANILLA_PLACE_MODE, false));
                 } else {
-                    cir.setReturnValue(originalState.setValue(PLACE_DIRECTION, clickedFace.getOpposite()).setValue(WATERLOGGED, waterlogged).setValue(VANILLA_PLACE_MODE, false));
+                    cir.setReturnValue(originalState.setValue(PLACE_DIRECTION, clickedFace.getOpposite()).setValue(VANILLA_PLACE_MODE, false));
                 }
             }
         }
