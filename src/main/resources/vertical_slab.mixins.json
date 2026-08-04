@@ -2,6 +2,7 @@
   "required": true,
   "package": "com.linweiyun.vertical_slab.mixin",
   "compatibilityLevel": "JAVA_21",
+  "plugin": "com.linweiyun.vertical_slab.mixin.SlabMixinPlugin",
   "mixins": [
     "BlockMixin.SlabBlockMixin"
   ],
