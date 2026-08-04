@@ -14,7 +14,7 @@ public class ServerEvents {
     }
 
     @SubscribeEvent
-    public void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
+    public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
         boolean mode = event.getEntity().getData(AttachmentRegistration.PLACEMENT_MODE_ATTACHMENT);
         PacketDistributor.sendToPlayer((ServerPlayer) event.getEntity(), new PlacementModeSyncPacket(mode));
     }
