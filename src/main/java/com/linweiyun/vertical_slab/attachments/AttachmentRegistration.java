@@ -18,7 +18,10 @@ public class AttachmentRegistration {
 
     public static final Supplier<AttachmentType<PlayerPlacementModeAttachment>> PLACEMENT_MODE_ATTACHMENT =
             ATTACHMENTS.register("placement_genshin_mode",
-                    () -> AttachmentType.builder(PlayerPlacementModeAttachment::new).build());
+                    () -> AttachmentType.builder(PlayerPlacementModeAttachment::new)
+                            .serialize(new PlayerPlacementModeAttachment())
+                            .copyOnDeath()
+                            .build());
 
 
     public static void register(IEventBus modEventBus) {
